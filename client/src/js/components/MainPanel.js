@@ -1,19 +1,31 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useRef, useState } from 'react';
 import * as three from 'three';
+import TWEEN from '@tweenjs/tween.js';
 
 import '../../scss/components/MainPanel.scss';
+
+const rotateCube = (cube, z) => {
+  TWEEN.removeAll();
+  new TWEEN.Tween(cube.rotation)
+    .to({ z }, 1000) // relative animation
+    .easing(TWEEN.Easing.Elastic.Out)
+    .start();
+};
 
 const MainPanel = () => {
   const ref = useRef(null);
   const [socket, setSocket] = useState(null);
+  const [servo1, setServo1] = useState(0);
 
-  const rotate = () => {
-    socket.send(JSON.stringify({
-      servo: 1,
-      arc: 20,
-    }));
-  };
+  useEffect(() => {
+    if (socket != null) {
+      socket.send(JSON.stringify({
+        servo: 1,
+        arc: servo1,
+      }));
+    }
+  }, [servo1]);
 
   useEffect(() => {
     const { current: el } = ref;
@@ -37,8 +49,7 @@ const MainPanel = () => {
 
     el.appendChild(renderer.domElement);
 
-    window.addEventListener('resize', (event) => {
-      console.log(event);
+    window.addEventListener('resize', () => {
       const { width: newWidth, height: newHeight } = el.getBoundingClientRect();
 
       camera.aspect = newWidth / newHeight;
@@ -50,6 +61,18 @@ const MainPanel = () => {
     renderer.setSize(width, height);
     renderer.render(scene, camera);
 
+    const render = () => {
+      TWEEN.update();
+      renderer.render(scene, camera);
+    };
+
+    function animate() {
+      requestAnimationFrame(animate);
+      render();
+    }
+
+    animate();
+
     const ws = new WebSocket('ws://localhost:8181/');
     ws.addEventListener('open', () => {
       console.log('Connected.');
@@ -59,9 +82,10 @@ const MainPanel = () => {
     ws.addEventListener('message', (event) => {
       const { servo, arc } = JSON.parse(event.data);
 
-      cube.rotation.x += 0.5;
-      renderer.render(scene, camera);
-
+      const targetRotation = three.Math.degToRad(arc);
+      rotateCube(cube, targetRotation, () => {
+        renderer.render(scene, camera);
+      });
       console.log('From server ', servo, arc);
     });
 
@@ -75,7 +99,16 @@ const MainPanel = () => {
       <div className="gl-wrapper" ref={ref} />
       {socket === null
         ? <div className="disconnected">Not connected</div>
-        : <button className="rotate-button" onClick={rotate}>Rotate</button>
+        : <div className="tools">
+          <input
+            type="range"
+            min="0"
+            max="180"
+            step="1"
+            value={servo1}
+            onChange={event => setServo1(parseInt(event.target.value, 10))}
+          />
+        </div>
       }
   </section>;
 };

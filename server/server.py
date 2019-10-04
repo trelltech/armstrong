@@ -20,7 +20,7 @@ async def ws_connection_handler(socket, path):
     while True:
         message = await socket.recv()
         data = json.loads(message)
-        packet = struct.pack('bb', data['servo'], data['arc'])
+        packet = struct.pack('BB', data['servo'], data['arc'])
         arduino.write(packet)
     sockets.remove(websocket)
 
@@ -28,8 +28,7 @@ async def consume(con):
     while True:
         msg = con.read(2)
         if msg:
-            servo, arc = struct.unpack('bb', msg)
-            print(servo, arc)
+            servo, arc = struct.unpack('BB', msg)
             packet = json.dumps({
                 'servo': servo,
                 'arc': arc,
