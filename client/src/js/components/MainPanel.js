@@ -8,8 +8,7 @@ import '../../scss/components/MainPanel.scss';
 const rotateCube = (cube, z) => {
   TWEEN.removeAll();
   new TWEEN.Tween(cube.rotation)
-    .to({ z }, 1000) // relative animation
-    .easing(TWEEN.Easing.Elastic.Out)
+    .to({ z }, 400)
     .start();
 };
 
@@ -37,13 +36,13 @@ const MainPanel = () => {
       antialias: true,
     });
 
-    camera.position.set(0, 3.5, 5);
+    camera.position.set(0, 0, 5);
 
-    const geometry = new three.CubeGeometry(1, 1, 0.1);
+    const geometry = new three.CubeGeometry(4, 4, 0.3);
     const material = new three.MeshNormalMaterial();
     const cube = new three.Mesh(geometry, material);
-    cube.position.set(0, 2, 0);
-    cube.rotation.x = 1.5;
+    cube.position.set(0, 0, 0);
+    cube.rotation.x = 1.8;
 
     scene.add(cube);
 
@@ -76,6 +75,10 @@ const MainPanel = () => {
     const ws = new WebSocket('ws://localhost:8181/');
     ws.addEventListener('open', () => {
       console.log('Connected.');
+      ws.send(JSON.stringify({
+        servo: 1,
+        arc: 0,
+      }));
       setSocket(ws);
     });
 
