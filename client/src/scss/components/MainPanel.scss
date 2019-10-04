@@ -1,2 +1,9 @@
 .main-panel-component {
+  overflow: hidden;
+
+  .rotate-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
 }
