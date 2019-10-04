@@ -1,17 +1,40 @@
 #!/usr/bin/env python
-
 import asyncio
 import websockets
+import serial
 
-async def serve(websocket, path):
+arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)
+
+sockets = set()
+
+async def ws_connection_handler(socket, path):
+    sockets.add(socket)
     while True:
-        message = await websocket.recv()
+        message = await socket.recv()
         print(message)
-        await websocket.send(message)
+        arduino.write(bytes(message, 'utf8'))
+    sockets.remove(websocket)
 
-server = websockets.serve(serve, '0.0.0.0', 8181)
+async def consume(con):
+    print(con)
+    while True:
+        msg = con.readline()
+        if msg:
+            print(msg)
+        asyncio.gather(*[socket.send(msg.decode('utf8')) for socket in sockets])
+        await asyncio.sleep(2)
 
-event_loop = asyncio.get_event_loop()
+loop = asyncio.get_event_loop()
 
-event_loop.run_until_complete(server)
-event_loop.run_forever()
+loop.run_until_complete(asyncio.gather(
+    websockets.serve(ws_connection_handler, '0.0.0.0', 8181),
+    consume(arduino),
+))
+
+try:
+    loop.run_forever()
+except KeyboardInterrupt:
+    pass
+finally:
+    loop.close()
+    print("Bye!")
