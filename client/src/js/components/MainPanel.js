@@ -16,6 +16,7 @@ const MainPanel = () => {
   const ref = useRef(null);
   const [socket, setSocket] = useState(null);
   const [servo1, setServo1] = useState(0);
+  const [servo2, setServo2] = useState(0);
 
   useEffect(() => {
     if (socket != null) {
@@ -27,6 +28,15 @@ const MainPanel = () => {
   }, [servo1]);
 
   useEffect(() => {
+    if (socket != null) {
+      socket.send(JSON.stringify({
+        servo: 2,
+        arc: servo2,
+      }));
+    }
+  }, [servo2]);
+
+  useEffect(() => {
     const { current: el } = ref;
     const { width, height } = el.getBoundingClientRect();
 
@@ -36,15 +46,21 @@ const MainPanel = () => {
       antialias: true,
     });
 
-    camera.position.set(0, 0, 5);
+    camera.position.set(0, 1, 7);
 
     const geometry = new three.CubeGeometry(4, 4, 0.3);
     const material = new three.MeshNormalMaterial();
-    const cube = new three.Mesh(geometry, material);
-    cube.position.set(0, 0, 0);
-    cube.rotation.x = 1.8;
 
-    scene.add(cube);
+    const cube1 = new three.Mesh(geometry, material);
+    cube1.position.set(0, 1, 0);
+    cube1.rotation.x = 1.8;
+
+    const cube2 = new three.Mesh(geometry, material);
+    cube2.position.set(0, -1, 0);
+    cube2.rotation.x = 1.8;
+
+    scene.add(cube1);
+    scene.add(cube2);
 
     el.appendChild(renderer.domElement);
 
@@ -86,9 +102,16 @@ const MainPanel = () => {
       const { servo, arc } = JSON.parse(event.data);
 
       const targetRotation = three.Math.degToRad(arc);
-      rotateCube(cube, targetRotation, () => {
-        renderer.render(scene, camera);
-      });
+
+      if (servo === 1) {
+        rotateCube(cube1, targetRotation, () => {
+          renderer.render(scene, camera);
+        });
+      } else if (servo === 2) {
+        rotateCube(cube2, targetRotation, () => {
+          renderer.render(scene, camera);
+        });
+      }
       console.log('From server ', servo, arc);
     });
 
@@ -110,6 +133,14 @@ const MainPanel = () => {
             step="1"
             value={servo1}
             onChange={event => setServo1(parseInt(event.target.value, 10))}
+          />
+          <input
+            type="range"
+            min="0"
+            max="180"
+            step="1"
+            value={servo2}
+            onChange={event => setServo2(parseInt(event.target.value, 10))}
           />
         </div>
       }
