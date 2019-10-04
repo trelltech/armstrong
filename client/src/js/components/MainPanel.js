@@ -78,10 +78,12 @@ const MainPanel = () => {
     });
   }, []);
 
-  return <section className="main-panel-component">
-      <div ref={ref} style={{ width: '100vw', height: '100vh', background: 'red' }} />
-
-      <button className="rotate-button" onClick={rotate}>Rotate</button>
+  return <section className="main-panel-component" style={{ width: '100vw', height: '100vh' }}>
+      <div className="gl-wrapper" ref={ref} />
+      {socket === null
+        ? <div className="disconnected">Not connected</div>
+        : <button className="rotate-button" onClick={rotate}>Rotate</button>
+      }
   </section>;
 };
 
