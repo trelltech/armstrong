@@ -8,7 +8,6 @@ const MainPanel = () => {
   const ref = useRef(null);
   const [socket, setSocket] = useState(null);
 
-
   const rotate = () => {
     socket.send(JSON.stringify({
       type: 'rotate',
@@ -36,6 +35,16 @@ const MainPanel = () => {
     scene.add(cube);
 
     el.appendChild(renderer.domElement);
+
+    window.addEventListener('resize', (event) => {
+      console.log(event);
+      const { width: newWidth, height: newHeight } = el.getBoundingClientRect();
+
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(newWidth, newHeight);
+    });
 
     renderer.setSize(width, height);
     renderer.render(scene, camera);
