@@ -33,3 +33,10 @@ The client will be available on `http://localhost:8080/`.
 Add your login user to the group that owns the device or make it readable and writeable to all users:
 
     sudo chmod a+rw /dev/ttyACM0
+
+## Arduino
+
+Deploy Arduino sketch:
+
+    cd arduino
+    arduino --upload sketch/sketch.ino --port /dev/ttyACM0
