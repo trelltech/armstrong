@@ -1,0 +1,26 @@
+$light-bg: #FFF;
+$dark-bg: #142642;
+
+$dark-fg: #333;
+$bread-fg: #444;
+
+$blue0: #0061e0;
+$blue1: #067bff;
+$blue2: #4fa2ff;
+$blue3: #88c1ff;
+
+$tint: #c7d3e2;
+$tint-medium: lighten($tint, 10%);
+$tint-light: lighten($tint, 14%);
+
+$green: #00b965;
+$red: #ff6c5b;
+$yellow: #fcba03;
+
+$chart-red: #ff6c5b;
+$chart-blue: $blue2;
+$chart-green: #00b965;
+$chart-pink: #f7759a;
+$chart-navy: #004db6;
+$chart-cyan: #00bdb2;
+$chart-magenta: #bb3d67;

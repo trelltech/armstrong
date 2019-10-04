@@ -1,0 +1,7 @@
+/server/env
+
+/client/dist/
+/client/node_modules/
+
+.module-cache
+*.pyc
