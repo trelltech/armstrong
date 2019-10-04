@@ -10,7 +10,8 @@ const MainPanel = () => {
 
   const rotate = () => {
     socket.send(JSON.stringify({
-      type: 'rotate',
+      servo: 1,
+      arc: 20,
     }));
   };
 
@@ -56,20 +57,12 @@ const MainPanel = () => {
     });
 
     ws.addEventListener('message', (event) => {
-      const { type, ...args } = JSON.parse(event.data);
+      const { servo, arc } = JSON.parse(event.data);
 
-      switch (type) {
-        case 'rotate': {
-          const { increment = 0.5 } = args;
-          cube.rotation.x += increment;
-          renderer.render(scene, camera);
-          break;
-        } default: {
-          console.warn(`Unknown action type ${type}.`);
-        }
-      }
+      cube.rotation.x += 0.5;
+      renderer.render(scene, camera);
 
-      console.log('From server ', event.data);
+      console.log('From server ', servo, arc);
     });
 
     ws.addEventListener('close', () => {

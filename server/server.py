@@ -3,6 +3,8 @@ import argparse
 import asyncio
 import websockets
 import serial
+import json
+import struct
 
 parser = argparse.ArgumentParser(description="Armstrong serial-ws bridge")
 parser.add_argument('--serial', help='Serial device', type=str, default='/dev/ttyACM0')
@@ -17,14 +19,22 @@ async def ws_connection_handler(socket, path):
     sockets.add(socket)
     while True:
         message = await socket.recv()
-        arduino.write(bytes(message, 'utf8'))
+        data = json.loads(message)
+        packet = struct.pack('bb', data['servo'], data['arc'])
+        arduino.write(packet)
     sockets.remove(websocket)
 
 async def consume(con):
     while True:
-        msg = con.readline()
+        msg = con.read(2)
         if msg:
-            asyncio.gather(*[socket.send(msg.decode('utf8')) for socket in sockets])
+            servo, arc = struct.unpack('bb', msg)
+            print(servo, arc)
+            packet = json.dumps({
+                'servo': servo,
+                'arc': arc,
+            })
+            asyncio.gather(*[socket.send(packet) for socket in sockets])
         await asyncio.sleep(0)
 
 if __name__ == '__main__':
