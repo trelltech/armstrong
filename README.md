@@ -39,4 +39,4 @@ Add your login user to the group that owns the device or make it readable and wr
 Deploy Arduino sketch:
 
     cd arduino
-    arduino --upload sketch/sketch.ino --port /dev/ttyACM0
+    arduino --upload sketches/sketch.ino --port /dev/ttyACM0
