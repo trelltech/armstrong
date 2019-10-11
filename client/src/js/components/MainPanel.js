@@ -12,29 +12,36 @@ const rotateCube = (cube, z) => {
     .start();
 };
 
+const SERVOS = 6;
+
+function usePrevious(value) {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
 const MainPanel = () => {
   const ref = useRef(null);
   const [socket, setSocket] = useState(null);
-  const [servo1, setServo1] = useState(0);
-  const [servo2, setServo2] = useState(0);
+
+  const [servoStates, setServoStates] = useState(Array(SERVOS).fill(0));
+  const prevServoStates = usePrevious(servoStates);
 
   useEffect(() => {
     if (socket != null) {
-      socket.send(JSON.stringify({
-        servo: 1,
-        arc: servo1,
-      }));
+      servoStates.forEach((value, i) => {
+        if (value !== prevServoStates[i]) {
+          console.log('sending', i, servoStates[i]);
+          socket.send(JSON.stringify({
+            servo: i,
+            arc: servoStates[i],
+          }));
+        }
+      });
     }
-  }, [servo1]);
-
-  useEffect(() => {
-    if (socket != null) {
-      socket.send(JSON.stringify({
-        servo: 2,
-        arc: servo2,
-      }));
-    }
-  }, [servo2]);
+  }, [servoStates]);
 
   useEffect(() => {
     const { current: el } = ref;
@@ -48,19 +55,18 @@ const MainPanel = () => {
 
     camera.position.set(0, 1, 7);
 
-    const geometry = new three.CubeGeometry(4, 4, 0.3);
+    const geometry = new three.CubeGeometry(1, 1, 0.2);
     const material = new three.MeshNormalMaterial();
 
-    const cube1 = new three.Mesh(geometry, material);
-    cube1.position.set(0, 1, 0);
-    cube1.rotation.x = 1.8;
+    const cubes = [];
 
-    const cube2 = new three.Mesh(geometry, material);
-    cube2.position.set(0, -1, 0);
-    cube2.rotation.x = 1.8;
-
-    scene.add(cube1);
-    scene.add(cube2);
+    for (let i = 0; i < SERVOS; i += 1) {
+      const cube = new three.Mesh(geometry, material);
+      cube.position.set(-1 * SERVOS / 2 + (i * 1.2), 1, 0);
+      cube.rotation.x = 1.8;
+      scene.add(cube);
+      cubes.push(cube);
+    }
 
     el.appendChild(renderer.domElement);
 
@@ -91,27 +97,20 @@ const MainPanel = () => {
     const ws = new WebSocket('ws://localhost:8181/');
     ws.addEventListener('open', () => {
       console.log('Connected.');
-      ws.send(JSON.stringify({
-        servo: 1,
-        arc: 0,
-      }));
       setSocket(ws);
     });
 
     ws.addEventListener('message', (event) => {
       const { servo, arc } = JSON.parse(event.data);
 
+      console.log('rotate', servo, arc);
+
       const targetRotation = three.Math.degToRad(arc);
 
-      if (servo === 1) {
-        rotateCube(cube1, targetRotation, () => {
-          renderer.render(scene, camera);
-        });
-      } else if (servo === 2) {
-        rotateCube(cube2, targetRotation, () => {
-          renderer.render(scene, camera);
-        });
-      }
+      rotateCube(cubes[servo], targetRotation, () => {
+        renderer.render(scene, camera);
+      });
+
       console.log('From server ', servo, arc);
     });
 
@@ -126,22 +125,20 @@ const MainPanel = () => {
       {socket === null
         ? <div className="disconnected">Not connected</div>
         : <div className="tools">
-          <input
-            type="range"
-            min="0"
-            max="180"
-            step="1"
-            value={servo1}
-            onChange={event => setServo1(parseInt(event.target.value, 10))}
-          />
-          <input
-            type="range"
-            min="0"
-            max="180"
-            step="1"
-            value={servo2}
-            onChange={event => setServo2(parseInt(event.target.value, 10))}
-          />
+          {Array(SERVOS).fill(null).map((_, i) => (
+            <input
+              type="range"
+              min="0"
+              max="180"
+              step="1"
+              value={servoStates[i]}
+              onChange={(event) => {
+                const states = [...servoStates];
+                states[i] = parseInt(event.target.value, 10);
+                setServoStates(states);
+              }}
+            />
+          ))}
         </div>
       }
   </section>;
