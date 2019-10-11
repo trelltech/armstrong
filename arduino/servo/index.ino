@@ -7,7 +7,7 @@ Servo servos[6];
 
 void setup() {
   Serial.begin(115200);
-  for(int i = 1; i < 6; ++i) {
+  for(int i = 0; i < 6; ++i) {
     servos[i].attach(i+8);
     servos[i].write(0);
   }
