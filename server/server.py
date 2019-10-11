@@ -28,15 +28,17 @@ async def ws_connection_handler(socket, path):
 
 
 async def consume(con):
+    msg = bytes()
     while True:
-        msg = con.read(2)
-        if msg:
+        msg += con.read(2)
+        if len(msg) == 2:
             servo, arc = struct.unpack('>BB', msg)
             packet = json.dumps({
                 'servo': servo,
                 'arc': arc,
             })
             asyncio.gather(*[socket.send(packet) for socket in sockets])
+            msg = bytes()
         await asyncio.sleep(0)
 
 
