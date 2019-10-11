@@ -32,10 +32,8 @@ const MainPanel = () => {
   // const prevServoStates = usePrevious(servoStates);
 
   useEffect(() => {
-    console.log('commands updated');
     if (commands && socket !== null) {
       commands.forEach(([servo, arc]) => {
-        console.log('sending', servo, arc);
         socket.send(JSON.stringify({
           servo,
           arc,
@@ -107,8 +105,6 @@ const MainPanel = () => {
     ws.addEventListener('message', (event) => {
       const { servo, arc } = JSON.parse(event.data);
 
-      console.log('rotate', servo, arc);
-
       const targetRotation = three.Math.degToRad(arc);
 
       const states = [...servoStates];
@@ -148,7 +144,6 @@ const MainPanel = () => {
                 setServoStates(states);
               }}
               onAfterChange={(value) => {
-                console.log(value);
                 setCommands([...commands, [i, value]]);
               }}
             />
