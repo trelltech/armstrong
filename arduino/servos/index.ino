@@ -1,17 +1,24 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+#include <LiquidCrystal.h>
 
 #define SERVOS 6
 #define MIN 100
 #define MAX 600
 #define SW_PIN 53
 #define VRX_PIN 0
-#define VRY_PIN 0
+#define VRY_PIN 1
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+LiquidCrystal lcd(22, 24, 26, 28, 30, 32);
 
 void setup() {
   pinMode(SW_PIN, INPUT);
   digitalWrite(SW_PIN, HIGH);
+
+  lcd.begin(16, 3);
+  lcd.setCursor(0, 0);
+  lcd.print("hello, world!");
 
   Serial.begin(115200);
 

@@ -4,6 +4,7 @@ import { Router, Route } from 'react-router-dom';
 import { createBrowserHistory } from 'history';
 
 import MainPanel from './MainPanel';
+import Boxes from './Boxes';
 
 import '../../scss/components/App.scss';
 
@@ -13,6 +14,7 @@ const App = () => (
   <section className="app-component">
     <Router history={history}>
         <Route path="/" component={MainPanel} />
+        <Route path="/boxes" component={Boxes} />
     </Router>
   </section>
 );
