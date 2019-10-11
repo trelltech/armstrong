@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as three from 'three';
 import TWEEN from '@tweenjs/tween.js';
+import Slider from 'rc-slider';
 
 import '../../scss/components/MainPanel.scss';
 
@@ -14,34 +15,37 @@ const rotateCube = (cube, z) => {
 
 const SERVOS = 6;
 
-function usePrevious(value) {
-  const ref = useRef();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
+// function usePrevious(value) {
+//   const ref = useRef();
+//   useEffect(() => {
+//     ref.current = value;
+//   });
+//   return ref.current;
+// }
 
 const MainPanel = () => {
   const ref = useRef(null);
   const [socket, setSocket] = useState(null);
 
   const [servoStates, setServoStates] = useState(Array(SERVOS).fill(0));
-  const prevServoStates = usePrevious(servoStates);
+  const [commands, setCommands] = useState([]);
+  // const prevServoStates = usePrevious(servoStates);
 
   useEffect(() => {
-    if (socket != null) {
-      servoStates.forEach((value, i) => {
-        if (value !== prevServoStates[i]) {
-          console.log('sending', i, servoStates[i]);
-          socket.send(JSON.stringify({
-            servo: i,
-            arc: servoStates[i],
-          }));
-        }
+    console.log('commands updated');
+    if (commands && socket !== null) {
+      commands.forEach(([servo, arc]) => {
+        console.log('sending', servo, arc);
+        socket.send(JSON.stringify({
+          servo,
+          arc,
+        }));
       });
     }
-  }, [servoStates]);
+    if (commands.length) {
+      setCommands([]);
+    }
+  }, [commands]);
 
   useEffect(() => {
     const { current: el } = ref;
@@ -107,6 +111,10 @@ const MainPanel = () => {
 
       const targetRotation = three.Math.degToRad(arc);
 
+      const states = [...servoStates];
+      states[servo] = arc;
+      setServoStates(states);
+
       rotateCube(cubes[servo], targetRotation, () => {
         renderer.render(scene, camera);
       });
@@ -126,16 +134,22 @@ const MainPanel = () => {
         ? <div className="disconnected">Not connected</div>
         : <div className="tools">
           {Array(SERVOS).fill(null).map((_, i) => (
-            <input
-              type="range"
-              min="0"
-              max="180"
-              step="1"
+            <Slider
+              className="tfr-timeline-zoom--slider"
+              min={0}
+              max={180}
+              key={`servo-slider-${i}`}
               value={servoStates[i]}
-              onChange={(event) => {
+              allowCross={false}
+              onChange={(value) => {
+                console.log(value);
                 const states = [...servoStates];
-                states[i] = parseInt(event.target.value, 10);
+                states[i] = parseInt(value, 10);
                 setServoStates(states);
+              }}
+              onAfterChange={(value) => {
+                console.log(value);
+                setCommands([...commands, [i, value]]);
               }}
             />
           ))}
